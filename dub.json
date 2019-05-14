@@ -1,0 +1,9 @@
+{
+	"authors": [
+		"Sepheus"
+	],
+	"copyright": "Copyright © 2019, Sepheus",
+	"description": "Weekend Raytracer implemented in D.",
+	"license": "MIT",
+	"name": "raytracer"
+}

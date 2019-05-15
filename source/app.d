@@ -1,4 +1,5 @@
 import std.stdio;
+import vector;
 
 /// Stores image width, height, depth and raw pixels.
 struct Image {
@@ -10,6 +11,7 @@ struct Image {
     int depth = 3;
     /// Raw pixel data in floats.
     float[][] pixels;
+    /// Initialise image with weight and height.
     this(int width, int height) {
         this.width = width;
         this.height = height;
@@ -17,6 +19,7 @@ struct Image {
     }
 }
 
+// If piping from console, make sure console is UTF-8.
 void main() {
     generate()
         .ppm();

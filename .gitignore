@@ -13,3 +13,4 @@ raytracer-test-*
 *.o
 *.obj
 *.lst
+*.ppm

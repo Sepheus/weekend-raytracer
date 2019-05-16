@@ -83,6 +83,11 @@ if(size >= 2 && size <= 4)
         mixin("return new Vector" ~ args.format!("(%-(%s%|, %));"));
     }
 
+    /// Scalar on Vector multiplication, yields a new Vector instance.
+    Vector opBinaryRight(string op : "*")(in float scalar) const {
+        static immutable args = size.iota.map!(i => "this[" ~ i.to!string ~ "] * scalar").array;
+        mixin("return new Vector" ~ args.format!("(%-(%s%|, %));"));
+    }
 
     /// In-place Scalar on Vector operations such as addition and subtraction.
     Vector opOpAssign(string op)(in float scalar) {
@@ -129,12 +134,17 @@ if(size >= 2 && size <= 4)
         mixin("return new Vector" ~ args.format!("(%(%s.0f%|, %))") ~ ";");
     }
 
-    /// Return the dot product of two Vector instances.
+    /// Linearly interpolate two vectors, returns a new Vector instance.
+    static Vector lerp() (in auto ref Vector lhs, in auto ref Vector rhs, float t) {
+        return (1.0f - t) * lhs + t * rhs;
+    }
+
+    /// Return the scalar dot product of two Vector instances.
     static float dot() (in auto ref Vector lhs, in auto ref Vector rhs) {
         return (lhs * rhs).sum;
     }
 
-    /// Return the cross product of two Vector3 instances.
+    /// Return the cross product of two Vector3 instances, returns a new Vector3 instance.
     static Vector3 cross() (in auto ref Vector3 lhs, in auto ref Vector3 rhs) if(size == 3) {
         return new Vector3(lhs[1] * rhs[2] - lhs[2] * rhs[1],
                            -(lhs[0] * rhs[2] - lhs[2] * rhs[0]),
@@ -183,4 +193,5 @@ unittest {
     assert(Vector3.cross(new Vector3(3.0f, -3.0f, 1.0f), new Vector3(-12.0f, 12.0f, -4.0f)) == Vector3.zero());
     assert(Vector3.cross(new Vector3(3.0f, 2.0f, 1.0f), new Vector3(-4.0f, 7.0f, 1.0f)) == new Vector3(-5.0f, -7.0f, 29.0f));
     assert(Vector3.normalized(new Vector3(1.0f, 2.0f, 3.0f)).magnitude().feqrel(1.0f));
+    assert(Vector3.lerp(new Vector3(0.2f, 0.2f, 0.2f), new Vector3(0.5f, 0.7f, 1.0f), 1.0f) == new Vector3(0.5f, 0.7f, 1.0f));
 }

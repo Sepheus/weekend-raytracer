@@ -28,7 +28,6 @@ if(size >= 2 && size <= 4)
     static foreach(i, c; _props[0..size]) {
         mixin("@property ref " ~ c ~ "() { return _components[" ~ i.stringof ~ "]; }");
     }
-
     
     /// Magnitude of the Vector
     @property magnitude() const {
@@ -124,14 +123,28 @@ if(size >= 2 && size <= 4)
 
     /// Return a new zero Vector (all components initialised to 0.0f)
     static Vector zero() {
+        //TODO: Return read-only static initialised version.
         static immutable args = [0,0,0,0][0..size];
         mixin("return new Vector" ~ args.format!("(%(%s.0f%|, %))") ~ ";");
     }
 
     /// Return a new unit Vector (all components initialised to 1.0f)
     static Vector one() {
+        //TODO: Return read-only static initialised version.
         static immutable args = [1,1,1,1][0..size];
         mixin("return new Vector" ~ args.format!("(%(%s.0f%|, %))") ~ ";");
+    }
+
+    /// Return a new Vector with components (0.0f, 0.0f, -1.0f)
+    static Vector3 back() () if(size == 3) {
+        //TODO: Return read-only static initialised version.
+        return new Vector3(0.0f, 0.0f, -1.0f);
+    }
+
+    /// Return a new Vector with components (1.0f, 0.0f, 0.0f)
+    static Vector3 right() () if(size == 3) {
+        //TODO: Return read-only static initialised version.
+        return new Vector3(1.0f, 0.0f, 0.0f);
     }
 
     /// Linearly interpolate two vectors, returns a new Vector instance.

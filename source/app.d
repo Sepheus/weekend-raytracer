@@ -26,7 +26,7 @@ struct Ray {
         const Vector3 b;
     }
     /// Initialise with origin and direction vectors.
-    this(in ref Vector3 lhs, in ref Vector3 rhs) { a = lhs; b = rhs; }
+    this(in Vector3 lhs, in Vector3 rhs) { a = lhs; b = rhs; }
     /// Return the origin vector of the ray.
     auto origin() const { return a; }
     /// Return the direction vector of the ray.
@@ -57,41 +57,43 @@ Image generate() {
 /// Linear blend to arrive at the correct colour for the position along the ray.
 Vector3 colour() (in auto ref Ray r) {
     import std.typecons : scoped;
-    if(r.hit_sphere(Vector3.back(), 0.5f)) { return Vector3.right(); }
+    float t = r.hit_sphere(Vector3.back(), 0.5f);
+    if(t > 0.0f) { 
+        auto n = Vector3.normalized(r.point_at_parameter(t) - Vector3.back());
+        return 0.5f * new Vector3(n.x + 1.0f, n.y + 1.0f, n.z + 1.0f);
+    }
     auto unit_direction = Vector3.normalized(r.direction());
-    immutable t = (unit_direction.y + 1.0f)*0.5f;
+    t = (unit_direction.y + 1.0f)*0.5f;
     return Vector3.lerp(Vector3.one(), scoped!Vector3(0.5f, 0.7f, 1.0f), t);
 }
 
 /// Trace the sky background.
 Image sky() {
-    import std.typecons : scoped;
+    import std.parallelism : parallel;
     Image output = Image(200, 100);
-    int p = 0;
     const lowerLeft = new Vector3(-2.0f, -1.0f, -1.0f);
     const horizontal = new Vector3(4.0f, 0.0f, 0.0f);
     const vertical = new Vector3(0.0f, 2.0f, 0.0f);
     const origin = Vector3.zero();
-        foreach_reverse(j; 0.0f .. output.height) {
-        foreach(i; 0.0f .. output.width) {
-            immutable u = i / output.width;
-            immutable v = j / output.height;
-            immutable calc = lowerLeft + u*horizontal + v*vertical;
-            auto col = Ray(origin, calc).colour();
-            output.pixels[p++] = [col.x, col.y, col.z];
-        }
+    foreach(i, ref pixel; output.pixels.parallel) {
+        immutable u = (i % output.width) / cast(float) output.width;
+        immutable v = ((output.height - 1.0f) - (i / output.width)) / output.height;
+        immutable calc = lowerLeft + u*horizontal + v*vertical;
+        auto col = Ray(origin, calc).colour();
+        pixel = [col.x, col.y, col.z];
     }
     return output;
 }
 
 /// Check if the ray intersects with the sphere at any point, true if it does.
-bool hit_sphere() (in auto ref Ray r, in auto ref Vector3 centre, float radius) {
-    auto oc = r.origin() - centre;
+float hit_sphere() (in auto ref Ray r, in Vector3 centre, float radius) pure {
+    import std.math : sqrt;
+    immutable oc = r.origin() - centre;
     immutable a = Vector3.dot(r.direction(), r.direction());
     immutable b = 2.0 * Vector3.dot(oc, r.direction());
     immutable c = Vector3.dot(oc, oc) - radius^^2;
     immutable discriminant = b^^2 - 4*a*c;
-    return (discriminant > 0.0f);
+    return discriminant < 0.0f ? -1.0f : (-b - discriminant.sqrt) / (2.0f * a);
 }
 
 /// Output image data in ppm format.

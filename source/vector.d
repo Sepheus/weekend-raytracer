@@ -27,6 +27,7 @@ if(size >= 2 && size <= 4)
 
     static foreach(i, c; _props[0..size]) {
         mixin("@property ref " ~ c ~ "() { return _components[" ~ i.stringof ~ "]; }");
+        mixin("@property get_" ~ c ~ "() const { return _components[" ~ i.stringof ~ "]; }");
     }
     
     /// Magnitude of the Vector
@@ -117,8 +118,8 @@ if(size >= 2 && size <= 4)
 
     /// Return a new normalized Vector.
     static Vector normalized() (in auto ref Vector v) {
-        //TODO: Make sure zero vector/small values are not NaN.
-        return v / v.length();
+        immutable mag = v.length();
+        return mag > float.epsilon ? (v / mag) : Vector.zero();
     }
 
     /// Return a new zero Vector (all components initialised to 0.0f)
@@ -198,6 +199,7 @@ unittest {
     assert(Vector3.distance(vecA, vecB).feqrel(10.2469));
     assert(Vector3.distance(vecB, vecA).feqrel(10.2469));
     vecA *= 2.0f;
+    assert(vecA == new Vector3(14.0f, 8.0f, 6.0f));
     assert(new Vector2(0.04, 0.931234) == new Vector2(0.04, 0.93125));
     Vector3 v1 = new Vector3(1.0f, 2.0f,  3.0f);
     Vector3 v2 = new Vector3(2.0f, 3.0f, 4.0f);
@@ -206,5 +208,6 @@ unittest {
     assert(Vector3.cross(new Vector3(3.0f, -3.0f, 1.0f), new Vector3(-12.0f, 12.0f, -4.0f)) == Vector3.zero());
     assert(Vector3.cross(new Vector3(3.0f, 2.0f, 1.0f), new Vector3(-4.0f, 7.0f, 1.0f)) == new Vector3(-5.0f, -7.0f, 29.0f));
     assert(Vector3.normalized(new Vector3(1.0f, 2.0f, 3.0f)).magnitude().feqrel(1.0f));
+    assert(Vector3.normalized(new Vector3(0.0f, 0.0f, 0.0f)) == Vector3.zero());
     assert(Vector3.lerp(new Vector3(0.2f, 0.2f, 0.2f), new Vector3(0.5f, 0.7f, 1.0f), 1.0f) == new Vector3(0.5f, 0.7f, 1.0f));
 }

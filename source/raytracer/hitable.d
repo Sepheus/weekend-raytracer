@@ -1,23 +1,9 @@
-module hitable;
-import vector;
+module raytracer.hitable;
+import raytracer.vector : Vector3;
+import raytracer.ray : Ray;
 
 interface IHitable {
     bool hit (in Ray r, float t_min, float t_max, out HitRecord rec) const;
-}
-
-/// Stores Ray data
-struct Ray {
-    private {
-        const Vector3 a;
-        const Vector3 b;
-    }
-    /// Initialise with origin and direction vectors.
-    this(in Vector3 lhs, in Vector3 rhs) { a = lhs; b = rhs; }
-    /// Return the origin vector of the ray.
-    auto origin() const { return a; }
-    /// Return the direction vector of the ray.
-    auto direction() const { return b; }
-    auto point_at_parameter(float t) const { return a + t*b; } 
 }
 
 struct HitRecord {

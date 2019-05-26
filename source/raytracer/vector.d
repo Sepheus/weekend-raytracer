@@ -1,4 +1,4 @@
-module vector;
+module raytracer.vector;
 /// Vector template.
 final class Vector(ubyte size) 
 if(size >= 2 && size <= 4)

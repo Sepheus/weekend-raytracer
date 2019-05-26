@@ -1,9 +1,10 @@
-module sphere;
-import hitable;
-import vector;
+module raytracer.sphere;
+import raytracer.hitable;
 
 class Sphere : IHitable {
     import std.math : sqrt;
+    import raytracer.vector : Vector3;
+    import raytracer.ray : Ray;
     private {
         const Vector3 _centre;
         float _radius;

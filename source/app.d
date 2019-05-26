@@ -1,7 +1,5 @@
 import std.stdio;
-import vector;
-import hitable;
-import sphere;
+import raytracer.raytracer;
 
 /// Stores image width, height, depth and raw pixels.
 struct Image {

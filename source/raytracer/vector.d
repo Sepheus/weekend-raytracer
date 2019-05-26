@@ -97,6 +97,15 @@ if(size >= 2 && size <= 4)
         return this;
     }
 
+    /// In-place Vector on Vector operations such as addition and subtraction.
+    Vector opOpAssign(string op)(in auto ref Vector rhs) {
+        static foreach(i; 0 .. size) {{
+            enum component = "_components[" ~ i.stringof ~ "]";
+            mixin(component ~ op ~ "= " ~ "rhs[" ~ i.to!string ~ "]" ~ ";");
+        }}
+        return this;
+    }
+
     /// Test approximate equality between two Vector instances.
     override bool opEquals(in Object o) const {
         auto rhs = cast(immutable Vector)o;

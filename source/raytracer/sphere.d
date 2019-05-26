@@ -15,9 +15,10 @@ class Sphere : IHitable {
         this._radius = radius;
     }
 
-    bool hit(in Ray r, float t_min, float t_max, out HitRecord rec) const {
+    HitRecord hit(in Ray r, float t_min, float t_max) pure const {
         const oc  = r.origin() - this._centre;
         bool ret;
+        HitRecord rec;
         immutable a = Vector3.dot(r.direction(), r.direction());
         immutable b = Vector3.dot(oc, r.direction());
         immutable c = Vector3.dot(oc, oc) - this._radius^^2;
@@ -39,6 +40,6 @@ class Sphere : IHitable {
         }
 
         rec.hit = ret;
-        return ret;
+        return rec;
     }
 }

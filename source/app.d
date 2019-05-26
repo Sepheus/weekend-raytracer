@@ -26,9 +26,9 @@ void main() {
 }
 
 /// Linear blend to arrive at the correct colour for the position along the ray.
-Vector3 colour() (in auto ref Ray r, in HitableList world) {
-    HitRecord rec;
-    if(world.hit(r, 0.0f, float.max, rec)) { 
+Vector3 colour() (in auto ref Ray r, in HitableList world) pure {
+    HitRecord rec = world.hit(r, 0.0f, float.max);
+    if(rec.hit) { 
         return 0.5f * new Vector3(rec.normal.x + 1.0f, rec.normal.y + 1.0f, rec.normal.z + 1.0f);
     }
     auto unit_direction = Vector3.normalized(r.direction());
@@ -39,19 +39,25 @@ Vector3 colour() (in auto ref Ray r, in HitableList world) {
 /// Render the scene.
 Image render() {
     import std.parallelism : parallel;
+    import std.random : uniform;
     Image output = Image(200, 100);
-    const lowerLeft = new Vector3(-2.0f, -1.0f, -1.0f);
-    const horizontal = new Vector3(4.0f, 0.0f, 0.0f);
-    const vertical = new Vector3(0.0f, 2.0f, 0.0f);
-    const origin = Vector3.zero();
+    immutable samples = 100.0f;
     HitableList world = new HitableList();
+    const camera = new Camera();
     world.add(new Sphere(new Vector3(0.0f, 0.0f, -1.0f), 0.5f));
     world.add(new Sphere(new Vector3(0.0f, -100.5f, -1.0f), 100.0f));
     foreach(i, ref pixel; output.pixels.parallel) {
-        immutable u = (i % output.width) / cast(float) output.width;
-        immutable v = ((output.height - 1.0f) - (i / output.width)) / output.height;
-        immutable calc = lowerLeft + u*horizontal + v*vertical;
-        const col = Ray(origin, calc).colour(world);
+        auto col = new Vector3(0.0f, 0.0f, 0.0f);
+        immutable x = (i % output.width);
+        immutable y = ((output.height - 1.0f) - (i / output.width));
+        foreach(_; 0 .. samples) {
+            immutable u = (x + uniform(0.0f, 1.0f)) / output.width;
+            immutable v = (y + uniform(0.0f, 1.0f)) / output.height;
+            col += camera
+                        .getRay(u, v)
+                        .colour(world);
+        }
+        col /= samples;
         pixel = [col.get_x, col.get_y, col.get_z];
     }
     return output;

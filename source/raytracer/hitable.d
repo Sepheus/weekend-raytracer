@@ -3,36 +3,38 @@ import raytracer.vector : Vector3;
 import raytracer.ray : Ray;
 
 interface IHitable {
-    bool hit (in Ray r, float t_min, float t_max, out HitRecord rec) const;
+    HitRecord hit (in Ray r, float t_min, float t_max) pure const;
 }
 
+/// Struct for maintaining information on if an object has been hit with a ray and where.
 struct HitRecord {
     float t;
-    bool hit = false;
+    bool hit;
     Vector3 point;
     Vector3 normal;
 }
 
+/// Maintains a list of hitable objects.
 class HitableList : IHitable {
     private {
         IHitable[] _list;
     }
 
     void add(IHitable obj) {
+        //TODO: Construct KD Tree instead?
         _list ~= obj;
     }
 
-    bool hit(in Ray r, float t_min, float t_max, out HitRecord rec) const {
-        HitRecord temp_rec;
+    HitRecord hit(in Ray r, float t_min, float t_max) pure const {
+        HitRecord rec;
         double closest = t_max;
-        bool hit_anything;
         foreach(ref obj; _list) {
-            if(obj.hit(r, t_min, closest, temp_rec)) {
-                hit_anything = true;
+            auto temp_rec = obj.hit(r, t_min, closest);
+            if(temp_rec.hit) {
                 closest = temp_rec.t;
                 rec = temp_rec;
             }
         }
-        return hit_anything;
+        return rec;
     }
 }

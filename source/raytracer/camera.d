@@ -14,9 +14,9 @@ class Camera {
 
     /// Initialise camera with default parameters.
     this() {
-        this._lowerLeft = new Vector3(-2.0f, -1.0f, -1.0f);
-        this._horizontal = new Vector3(4.0f, 0.0f, 0.0f);
-        this._vertical = new Vector3(0.0f, 2.0f, 0.0f);
+        this._lowerLeft = Vector3(-2.0f, -1.0f, -1.0f);
+        this._horizontal = Vector3(4.0f, 0.0f, 0.0f);
+        this._vertical = Vector3(0.0f, 2.0f, 0.0f);
         this._origin = Vector3.zero();
     }
 

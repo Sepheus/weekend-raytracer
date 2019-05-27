@@ -17,3 +17,4 @@ raytracer-test-*
 *.ppm
 *.png
 *.log
+*.bat

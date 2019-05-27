@@ -1,6 +1,6 @@
 module raytracer.vector;
 /// Vector template.
-final class Vector(ubyte size) 
+final struct Vector(ubyte size) 
 if(size >= 2 && size <= 4)
 {
     import std.traits : isFloatingPoint;
@@ -18,8 +18,8 @@ if(size >= 2 && size <= 4)
         static immutable _typeName = "Vector" ~ size.to!string;
         static immutable _props = ['x', 'y', 'z', 'w'];
         float[size] _components;
-        static const _right = new Vector3(1.0f, 0.0f, 0.0f);
-        static const _back = new Vector3(0.0f, 0.0f, -1.0f);
+        static const _right = Vector3(1.0f, 0.0f, 0.0f);
+        static const _back = Vector3(0.0f, 0.0f, -1.0f);
     }
 
     /// Construct a new vector with the given components
@@ -76,19 +76,19 @@ if(size >= 2 && size <= 4)
     /// Vector on Vector operations such as addition and subtraction, yields a new Vector instance.
     Vector opBinary(string op)(in auto ref Vector rhs) const {
         static immutable args = size.iota.map!(i => "this[" ~ i.to!string ~ "] " ~ op ~ " rhs[" ~ i.to!string ~ "]").array;
-        mixin("return new Vector" ~ args.format!("(%-(%s%|, %));"));
+        mixin("return Vector" ~ args.format!("(%-(%s%|, %));"));
     }
 
     /// Scalar on Vector operations such as addition and subtraction, yields a new Vector instance.
     Vector opBinary(string op)(in float scalar) const {
         static immutable args = size.iota.map!(i => "this[" ~ i.to!string ~ "] " ~ op ~ " scalar").array;
-        mixin("return new Vector" ~ args.format!("(%-(%s%|, %));"));
+        mixin("return Vector" ~ args.format!("(%-(%s%|, %));"));
     }
 
     /// Scalar on Vector multiplication, yields a new Vector instance.
     Vector opBinaryRight(string op : "*")(in float scalar) const {
         static immutable args = size.iota.map!(i => "this[" ~ i.to!string ~ "] * scalar").array;
-        mixin("return new Vector" ~ args.format!("(%-(%s%|, %));"));
+        mixin("return Vector" ~ args.format!("(%-(%s%|, %));"));
     }
 
     /// In-place Scalar on Vector operations such as addition and subtraction.
@@ -109,8 +109,7 @@ if(size >= 2 && size <= 4)
     }
 
     /// Test approximate equality between two Vector instances.
-    override bool opEquals(in Object o) const {
-        auto rhs = cast(immutable Vector)o;
+    bool opEquals(in Vector rhs) const {
         return (this - rhs).sqrMagnitude < float.epsilon;
     }
 
@@ -129,31 +128,32 @@ if(size >= 2 && size <= 4)
 
     /// Return a new normalized Vector.
     static Vector normalized() (in auto ref Vector v) {
+        //FIXME: Simplify this.  We want to return a mutable zero vector.
         static immutable args = [0,0,0,0][0..size];
-        mixin("auto zero = new Vector" ~ args.format!("(%(%s.0f%|, %))") ~ ";");
+        mixin("auto zero = Vector" ~ args.format!("(%(%s.0f%|, %))") ~ ";");
         immutable mag = v.length();
         return mag > float.epsilon ? (v / mag) : zero;
     }
 
-    /// Return a new zero Vector (all components initialised to 0.0f)
-    static const(Vector) zero() {
+    /// Return a reference to a zero Vector (all components initialised to 0.0f)
+    static ref const(Vector) zero() {
         static immutable args = [0,0,0,0][0..size];
-        mixin("static const zero = new Vector" ~ args.format!("(%(%s.0f%|, %))") ~ ";");
+        mixin("static const zero = Vector" ~ args.format!("(%(%s.0f%|, %))") ~ ";");
         return zero;
     }
 
-    /// Return a new unit Vector (all components initialised to 1.0f)
-    static const(Vector) one() {
+    /// Return a reference to a unit Vector (all components initialised to 1.0f)
+    static ref const(Vector) one() {
         static immutable args = [1,1,1,1][0..size];
-        mixin("static const one = new Vector" ~ args.format!("(%(%s.0f%|, %))") ~ ";");
+        mixin("static const one = Vector" ~ args.format!("(%(%s.0f%|, %))") ~ ";");
         return one;
     }
 
-    /// Return a new Vector with components (0.0f, 0.0f, -1.0f)
-    static const(Vector3) back() () if(size == 3) { return _back; }
+    /// Return a reference to a Vector with components (0.0f, 0.0f, -1.0f)
+    static ref const(Vector3) back() () if(size == 3) { return _back; }
 
-    /// Return a new Vector with components (1.0f, 0.0f, 0.0f)
-    static const(Vector3) right() () if(size == 3) { return _right; }
+    /// Return a reference to a Vector with components (1.0f, 0.0f, 0.0f)
+    static ref const(Vector3) right() () if(size == 3) { return _right; }
 
     /// Linearly interpolate two vectors, returns a new Vector instance.
     static Vector lerp() (in auto ref Vector lhs, in auto ref Vector rhs, float t) {
@@ -167,12 +167,12 @@ if(size >= 2 && size <= 4)
 
     /// Return the cross product of two Vector3 instances, returns a new Vector3 instance.
     static Vector3 cross() (in auto ref Vector3 lhs, in auto ref Vector3 rhs) if(size == 3) {
-        return new Vector3(lhs[1] * rhs[2] - lhs[2] * rhs[1],
-                           -(lhs[0] * rhs[2] - lhs[2] * rhs[0]),
-                           lhs[0] * rhs[1] - lhs[1] * rhs[0]);
+        return Vector3(lhs[1] * rhs[2] - lhs[2] * rhs[1],
+                     -(lhs[0] * rhs[2] - lhs[2] * rhs[0]),
+                       lhs[0] * rhs[1] - lhs[1] * rhs[0]);
     }
 
-    override string toString() const {
+    string toString() const {
         return _components.format!("(%(%s, %))");
     }
 }
@@ -189,32 +189,36 @@ alias Vector4 = Vector!4;
 unittest {
     import std.stdio : writeln;
     import std.math : feqrel;
-    Vector2 vec2 = new Vector2(1.0f, 2.0f);
-    Vector3 vec3 = new Vector3(1.0f, 2.0f, 3.0f);
-    Vector4 vec4 = new Vector4(1.0f, 2.0f, 3.0f, 4.0f);
+    Vector2 vec2 = Vector2(1.0f, 2.0f);
+    Vector3 vec3 = Vector3(1.0f, 2.0f, 3.0f);
+    Vector4 vec4 = Vector4(1.0f, 2.0f, 3.0f, 4.0f);
     assert(vec2.x == 1.0f);
     assert(vec3.z == 3.0f);
     assert(vec4.w == 4.0f);
     assert(vec4.length.feqrel(5.47723f));
-    auto t = new Vector3(0.0f, 0.0f, 0.0f);
+    auto t = Vector3(0.0f, 0.0f, 0.0f);
     t.x += 2;
     assert(t.x == 2.0f);
-    auto z = t + new Vector3(0.0f, 2.0f, 4.0f);
+    auto z = t + Vector3(0.0f, 2.0f, 4.0f);
     assert(z.y == 2.0f);
-    auto vecA = new Vector3(7.0f, 4.0f, 3.0f);
-    auto vecB = new Vector3(17.0f, 6.0f, 2.0f);
+    auto vecA = Vector3(7.0f, 4.0f, 3.0f);
+    auto vecB = Vector3(17.0f, 6.0f, 2.0f);
     assert(Vector3.distance(vecA, vecB).feqrel(10.2469));
     assert(Vector3.distance(vecB, vecA).feqrel(10.2469));
     vecA *= 2.0f;
-    assert(vecA == new Vector3(14.0f, 8.0f, 6.0f));
-    assert(new Vector2(0.04, 0.931234) == new Vector2(0.04, 0.93125));
-    Vector3 v1 = new Vector3(1.0f, 2.0f,  3.0f);
-    Vector3 v2 = new Vector3(2.0f, 3.0f, 4.0f);
+    assert(vecA == Vector3(14.0f, 8.0f, 6.0f));
+    assert(Vector2(0.04, 0.931234) == Vector2(0.04, 0.93125));
+    Vector3 v1 = Vector3(1.0f, 2.0f,  3.0f);
+    Vector3 v2 = Vector3(2.0f, 3.0f, 4.0f);
     assert(Vector3.dot(Vector3.one(), Vector3.one()) == 3.0f);
     assert(Vector3.dot(v1, v2).feqrel(20.0f));
-    assert(Vector3.cross(new Vector3(3.0f, -3.0f, 1.0f), new Vector3(-12.0f, 12.0f, -4.0f)) == Vector3.zero());
-    assert(Vector3.cross(new Vector3(3.0f, 2.0f, 1.0f), new Vector3(-4.0f, 7.0f, 1.0f)) == new Vector3(-5.0f, -7.0f, 29.0f));
-    assert(Vector3.normalized(new Vector3(1.0f, 2.0f, 3.0f)).magnitude().feqrel(1.0f));
-    assert(Vector3.normalized(new Vector3(0.0f, 0.0f, 0.0f)) == Vector3.zero());
-    assert(Vector3.lerp(new Vector3(0.2f, 0.2f, 0.2f), new Vector3(0.5f, 0.7f, 1.0f), 1.0f) == new Vector3(0.5f, 0.7f, 1.0f));
+    assert(Vector3.cross(Vector3(3.0f, -3.0f, 1.0f), Vector3(-12.0f, 12.0f, -4.0f)) == Vector3.zero());
+    assert(Vector3.cross(Vector3(3.0f, 2.0f, 1.0f), Vector3(-4.0f, 7.0f, 1.0f)) == Vector3(-5.0f, -7.0f, 29.0f));
+    assert(Vector3.normalized(Vector3(1.0f, 2.0f, 3.0f)).magnitude().feqrel(1.0f));
+    assert(Vector3.normalized(Vector3(0.0f, 0.0f, 0.0f)) == Vector3.zero());
+    assert(Vector3.lerp(Vector3(0.2f, 0.2f, 0.2f), Vector3(0.5f, 0.7f, 1.0f), 1.0f) == Vector3(0.5f, 0.7f, 1.0f));
+    assert(&Vector3.zero() == &Vector3.zero());
+    assert(&Vector3.one() == &Vector3.one());
+    assert(&Vector3.back() == &Vector3.back());
+    assert(&Vector3.right() == &Vector3.right());
 }

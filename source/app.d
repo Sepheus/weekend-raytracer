@@ -28,10 +28,9 @@ void main() {
 /// Simulate matte material difraction.
 Vector3 diffuse() {
     import std.random : uniform01;
-    import std.typecons : scoped;
     Vector3 p;
     do {
-        p = 2.0f * scoped!Vector3(uniform01(), uniform01(), uniform01()) - Vector3.one();
+        p = 2.0f * Vector3(uniform01(), uniform01(), uniform01()) - Vector3.one();
     } while(p.sqrMagnitude >= 1.0f);
     return p;
 }
@@ -39,7 +38,7 @@ Vector3 diffuse() {
 /// Linear blend to arrive at the correct colour for the position along the ray.
 Vector3 colour() (in auto ref Ray r, in HitableList world) {
     immutable rec = world.hit(r, 0.001, float.max);
-    static const c = new Vector3(0.5f, 0.7f, 1.0f);
+    static const c = Vector3(0.5f, 0.7f, 1.0f);
     if(rec.hit) {
         const target = rec.point + rec.normal + diffuse();
         return 0.5f * Ray(rec.point, target-rec.point).colour(world);
@@ -54,14 +53,14 @@ Image render() {
     import std.parallelism : parallel;
     import std.random : uniform01;
     import std.math : sqrt;
-    Image output = Image(400, 200);
+    Image output = Image(1600, 800);
     immutable samples = 100.0f;
     HitableList world = new HitableList();
     const camera = new Camera();
-    world.add(new Sphere(new Vector3(0.0f, 0.0f, -1.0f), 0.5f));
-    world.add(new Sphere(new Vector3(0.0f, -100.5f, -1.0f), 100.0f));
+    world.add(new Sphere(Vector3(0.0f, 0.0f, -1.0f), 0.5f));
+    world.add(new Sphere(Vector3(0.0f, -100.5f, -1.0f), 100.0f));
     foreach(i, ref pixel; output.pixels.parallel) {
-        auto col = new Vector3(0.0f, 0.0f, 0.0f);
+        auto col = Vector3(0.0f, 0.0f, 0.0f);
         immutable x = (i % output.width);
         immutable y = ((output.height - 1.0f) - (i / output.width));
         foreach(_; 0 .. samples) {

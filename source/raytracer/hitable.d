@@ -3,7 +3,7 @@ import raytracer.vector : Vector3;
 import raytracer.ray : Ray;
 
 interface IHitable {
-    HitRecord hit (in Ray r, float t_min, float t_max) pure const;
+    HitRecord hit (in ref Ray r, float t_min, float t_max) pure const;
 }
 
 /// Struct for maintaining information on if an object has been hit with a ray and where.
@@ -25,7 +25,7 @@ class HitableList : IHitable {
         _list ~= obj;
     }
 
-    HitRecord hit(in Ray r, float t_min, float t_max) pure const {
+    HitRecord hit(in ref Ray r, float t_min, float t_max) pure const {
         HitRecord rec;
         double closest = t_max;
         foreach(ref obj; _list) {

@@ -18,6 +18,8 @@ if(size >= 2 && size <= 4)
         static immutable _typeName = "Vector" ~ size.to!string;
         static immutable _props = ['x', 'y', 'z', 'w'];
         float[size] _components;
+        static const _right = new Vector3(1.0f, 0.0f, 0.0f);
+        static const _back = new Vector3(0.0f, 0.0f, -1.0f);
     }
 
     /// Construct a new vector with the given components
@@ -27,7 +29,7 @@ if(size >= 2 && size <= 4)
 
     static foreach(i, c; _props[0..size]) {
         mixin("@property ref " ~ c ~ "() { return _components[" ~ i.stringof ~ "]; }");
-        mixin("@property get_" ~ c ~ "() const { return _components[" ~ i.stringof ~ "]; }");
+        mixin("@property " ~ c ~ "() const { return _components[" ~ i.stringof ~ "]; }");
     }
     
     /// Magnitude of the Vector
@@ -127,35 +129,31 @@ if(size >= 2 && size <= 4)
 
     /// Return a new normalized Vector.
     static Vector normalized() (in auto ref Vector v) {
+        static immutable args = [0,0,0,0][0..size];
+        mixin("auto zero = new Vector" ~ args.format!("(%(%s.0f%|, %))") ~ ";");
         immutable mag = v.length();
-        return mag > float.epsilon ? (v / mag) : Vector.zero();
+        return mag > float.epsilon ? (v / mag) : zero;
     }
 
     /// Return a new zero Vector (all components initialised to 0.0f)
-    static Vector zero() {
-        //TODO: Return read-only static initialised version.
+    static const(Vector) zero() {
         static immutable args = [0,0,0,0][0..size];
-        mixin("return new Vector" ~ args.format!("(%(%s.0f%|, %))") ~ ";");
+        mixin("static const zero = new Vector" ~ args.format!("(%(%s.0f%|, %))") ~ ";");
+        return zero;
     }
 
     /// Return a new unit Vector (all components initialised to 1.0f)
-    static Vector one() {
-        //TODO: Return read-only static initialised version.
+    static const(Vector) one() {
         static immutable args = [1,1,1,1][0..size];
-        mixin("return new Vector" ~ args.format!("(%(%s.0f%|, %))") ~ ";");
+        mixin("static const one = new Vector" ~ args.format!("(%(%s.0f%|, %))") ~ ";");
+        return one;
     }
 
     /// Return a new Vector with components (0.0f, 0.0f, -1.0f)
-    static Vector3 back() () if(size == 3) {
-        //TODO: Return read-only static initialised version.
-        return new Vector3(0.0f, 0.0f, -1.0f);
-    }
+    static const(Vector3) back() () if(size == 3) { return _back; }
 
     /// Return a new Vector with components (1.0f, 0.0f, 0.0f)
-    static Vector3 right() () if(size == 3) {
-        //TODO: Return read-only static initialised version.
-        return new Vector3(1.0f, 0.0f, 0.0f);
-    }
+    static const(Vector3) right() () if(size == 3) { return _right; }
 
     /// Linearly interpolate two vectors, returns a new Vector instance.
     static Vector lerp() (in auto ref Vector lhs, in auto ref Vector rhs, float t) {
@@ -174,7 +172,7 @@ if(size >= 2 && size <= 4)
                            lhs[0] * rhs[1] - lhs[1] * rhs[0]);
     }
 
-    override string toString() {
+    override string toString() const {
         return _components.format!("(%(%s, %))");
     }
 }

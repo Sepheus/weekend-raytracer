@@ -28,23 +28,25 @@ void main() {
 /// Simulate matte material difraction.
 Vector3 diffuse() {
     import std.random : uniform01;
+    import std.typecons : scoped;
     Vector3 p;
     do {
-        p = 2.0f * new Vector3(uniform01(), uniform01(), uniform01()) - Vector3.one();
+        p = 2.0f * scoped!Vector3(uniform01(), uniform01(), uniform01()) - Vector3.one();
     } while(p.sqrMagnitude >= 1.0f);
     return p;
 }
 
 /// Linear blend to arrive at the correct colour for the position along the ray.
 Vector3 colour() (in auto ref Ray r, in HitableList world) {
-    HitRecord rec = world.hit(r, 0.001, float.max);
+    immutable rec = world.hit(r, 0.001, float.max);
+    static const c = new Vector3(0.5f, 0.7f, 1.0f);
     if(rec.hit) {
-        Vector3 target = rec.point + rec.normal + diffuse();
+        const target = rec.point + rec.normal + diffuse();
         return 0.5f * Ray(rec.point, target-rec.point).colour(world);
     }
-    auto unit_direction = Vector3.normalized(r.direction());
+    immutable unit_direction = Vector3.normalized(r.direction());
     immutable t = (unit_direction.y + 1.0f)*0.5f;
-    return Vector3.lerp(Vector3.one(), new Vector3(0.5f, 0.7f, 1.0f), t);
+    return Vector3.lerp(Vector3.one(), c, t);
 }
 
 /// Render the scene.
@@ -52,7 +54,7 @@ Image render() {
     import std.parallelism : parallel;
     import std.random : uniform01;
     import std.math : sqrt;
-    Image output = Image(200, 100);
+    Image output = Image(400, 200);
     immutable samples = 100.0f;
     HitableList world = new HitableList();
     const camera = new Camera();
@@ -70,7 +72,7 @@ Image render() {
                         .colour(world);
         }
         col /= samples;
-        pixel = [col.get_x.sqrt, col.get_y.sqrt, col.get_z.sqrt];
+        pixel = [col.x.sqrt, col.y.sqrt, col.z.sqrt];
     }
     return output;
 }

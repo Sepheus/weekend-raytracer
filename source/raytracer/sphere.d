@@ -15,7 +15,7 @@ class Sphere : IHitable {
         this._radius = radius;
     }
 
-    HitRecord hit(in Ray r, float t_min, float t_max) pure const {
+    HitRecord hit(in ref Ray r, float t_min, float t_max) pure const {
         const oc  = r.origin() - this._centre;
         bool ret;
         HitRecord rec;
@@ -24,7 +24,7 @@ class Sphere : IHitable {
         immutable c = Vector3.dot(oc, oc) - this._radius^^2;
         immutable discriminant = b^^2 - a*c;
 
-        auto intersect = (float temp) {
+        auto intersect(float temp) {
             if(temp < t_max && temp > t_min) {
                 rec.t = temp;
                 rec.point = r.point_at_parameter(rec.t);
@@ -32,7 +32,7 @@ class Sphere : IHitable {
                 return true;
             }
             return false;
-        };
+        }
 
         if(discriminant > 0.0f) {
             immutable rt = discriminant.sqrt;

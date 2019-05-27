@@ -16,3 +16,4 @@ raytracer-test-*
 *.lst
 *.ppm
 *.png
+*.log

@@ -9,10 +9,10 @@ class Sphere : IHitable {
     private {
         immutable Vector3 _centre;
         immutable float _radius;
-        IMaterial _material;
+        Material _material;
     }
 
-    this(in Vector3 centre, float radius, IMaterial material) { 
+    this(in Vector3 centre, float radius, Material material) { 
         this._centre = centre;
         this._radius = radius;
         this._material = material;
@@ -22,7 +22,7 @@ class Sphere : IHitable {
         immutable oc  = r.origin() - this._centre;
         bool ret;
         HitRecord rec;
-        rec.material = cast(IMaterial) this._material;
+        rec.material = cast(Material) this._material; //FIXME: Don't cast away const.
         immutable a = Vector3.dot(r.direction(), r.direction());
         immutable b = Vector3.dot(oc, r.direction());
         immutable c = Vector3.dot(oc, oc) - this._radius^^2;

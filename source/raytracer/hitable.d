@@ -13,7 +13,7 @@ struct HitRecord {
     bool hit;
     Vector3 point;
     Vector3 normal;
-    IMaterial material;
+    Material material;
 }
 
 /// Maintains a list of hitable objects.

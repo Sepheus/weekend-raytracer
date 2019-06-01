@@ -52,6 +52,8 @@ Image render() {
     const camera = new Camera();
     world.add(new Sphere(Vector3(0.0f, 0.0f, -1.0f), 0.5f, new Lambertian(Vector3(0.8f, 0.3f, 0.3f))));
     world.add(new Sphere(Vector3(0.0f, -100.5f, -1.0f), 100.0f, new Lambertian(Vector3(0.8f, 0.8f, 0.0f))));
+    world.add(new Sphere(Vector3(1.0f, 0.0f, -1.0f), 0.5f, new Metal(Vector3(0.8f, 0.6f, 0.2f))));
+    world.add(new Sphere(Vector3(-1.0f, 0.0f, -1.0f), 0.5f, new Metal(Vector3(0.8f, 0.8f, 0.8f))));
     foreach(i, ref pixel; output.pixels.parallel) {
         auto col = Vector3(0.0f, 0.0f, 0.0f);
         immutable x = (i % output.width);

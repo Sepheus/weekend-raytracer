@@ -172,6 +172,11 @@ if(size >= 2 && size <= 4)
                        lhs[0] * rhs[1] - lhs[1] * rhs[0]);
     }
 
+    /// Return the reflected vector from the normal plane as a new Vector instance.
+    static Vector reflect() (in auto ref Vector direction, in auto ref Vector normal) {
+        return -2.0f * Vector.dot(direction, normal) * normal + direction;
+    }
+
     string toString() const {
         return _components.format!("(%(%s, %))");
     }

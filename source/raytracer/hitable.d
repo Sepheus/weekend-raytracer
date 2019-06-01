@@ -1,6 +1,7 @@
 module raytracer.hitable;
 import raytracer.vector : Vector3;
 import raytracer.ray : Ray;
+import raytracer.materials.material;
 
 interface IHitable {
     HitRecord hit (in ref Ray r, float t_min, float t_max) pure const;
@@ -12,6 +13,7 @@ struct HitRecord {
     bool hit;
     Vector3 point;
     Vector3 normal;
+    IMaterial material;
 }
 
 /// Maintains a list of hitable objects.

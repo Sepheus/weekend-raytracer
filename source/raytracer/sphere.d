@@ -1,24 +1,28 @@
 module raytracer.sphere;
 import raytracer.hitable;
+import raytracer.materials.material;
 
 class Sphere : IHitable {
     import std.math : sqrt;
     import raytracer.vector : Vector3;
     import raytracer.ray : Ray;
     private {
-        const Vector3 _centre;
-        float _radius;
+        immutable Vector3 _centre;
+        immutable float _radius;
+        IMaterial _material;
     }
 
-    this(in Vector3 centre, float radius) { 
+    this(in Vector3 centre, float radius, IMaterial material) { 
         this._centre = centre;
         this._radius = radius;
+        this._material = material;
     }
 
     HitRecord hit(in ref Ray r, float t_min, float t_max) pure const {
-        const oc  = r.origin() - this._centre;
+        immutable oc  = r.origin() - this._centre;
         bool ret;
         HitRecord rec;
+        rec.material = cast(IMaterial) this._material;
         immutable a = Vector3.dot(r.direction(), r.direction());
         immutable b = Vector3.dot(oc, r.direction());
         immutable c = Vector3.dot(oc, oc) - this._radius^^2;

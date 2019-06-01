@@ -25,23 +25,16 @@ void main() {
         .ppm();
 }
 
-/// Simulate matte material difraction.
-Vector3 diffuse() {
-    import std.random : uniform01;
-    Vector3 p;
-    do {
-        p = 2.0f * Vector3(uniform01(), uniform01(), uniform01()) - Vector3.one();
-    } while(p.sqrMagnitude >= 1.0f);
-    return p;
-}
-
 /// Linear blend to arrive at the correct colour for the position along the ray.
-Vector3 colour() (in auto ref Ray r, in HitableList world) {
+Vector3 colour() (in auto ref Ray r, in HitableList world, int depth = 0) {
     immutable rec = world.hit(r, 0.001, float.max);
-    static const c = Vector3(0.5f, 0.7f, 1.0f);
+    static immutable c = Vector3(0.5f, 0.7f, 1.0f);
     if(rec.hit) {
-        const target = rec.point + rec.normal + diffuse();
-        return 0.5f * Ray(rec.point, target-rec.point).colour(world);
+        immutable mat = rec.material.scatter(r, rec);
+        if(depth < 50 && mat.scattered) {
+            return mat.attenuation * mat.ray.colour(world, depth + 1);
+        }
+        else { return Vector3.zero(); }
     }
     immutable unit_direction = Vector3.normalized(r.direction());
     immutable t = (unit_direction.y + 1.0f)*0.5f;
@@ -57,8 +50,8 @@ Image render() {
     immutable samples = 100.0f;
     HitableList world = new HitableList();
     const camera = new Camera();
-    world.add(new Sphere(Vector3(0.0f, 0.0f, -1.0f), 0.5f));
-    world.add(new Sphere(Vector3(0.0f, -100.5f, -1.0f), 100.0f));
+    world.add(new Sphere(Vector3(0.0f, 0.0f, -1.0f), 0.5f, new Lambertian(Vector3(0.8f, 0.3f, 0.3f))));
+    world.add(new Sphere(Vector3(0.0f, -100.5f, -1.0f), 100.0f, new Lambertian(Vector3(0.8f, 0.8f, 0.0f))));
     foreach(i, ref pixel; output.pixels.parallel) {
         auto col = Vector3(0.0f, 0.0f, 0.0f);
         immutable x = (i % output.width);

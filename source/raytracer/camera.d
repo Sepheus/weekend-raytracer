@@ -6,10 +6,10 @@ class Camera {
     import raytracer.ray : Ray;
 
     private {
-        const Vector3 _lowerLeft;
-        const Vector3 _horizontal;
-        const Vector3 _vertical;
-        const Vector3 _origin;
+        immutable Vector3 _lowerLeft;
+        immutable Vector3 _horizontal;
+        immutable Vector3 _vertical;
+        immutable Vector3 _origin;
     }
 
     /// Initialise camera with default parameters.

@@ -20,6 +20,7 @@ if(size >= 2 && size <= 4)
         float[size] _components;
         static const _right = Vector3(1.0f, 0.0f, 0.0f);
         static const _back = Vector3(0.0f, 0.0f, -1.0f);
+        static const _up = Vector3(0.0f, 1.0f, 0.0f);
     }
 
     /// Construct a new vector with the given components
@@ -160,6 +161,9 @@ if(size >= 2 && size <= 4)
 
     /// Return a reference to a Vector with components (1.0f, 0.0f, 0.0f)
     static ref const(Vector3) right() () if(size == 3) { return _right; }
+
+    /// Return a reference to a Vector with components (0.0f, 1.0f, 0.0f)
+    static ref const(Vector3) up() () if(size == 3) { return _up; }
 
     /// Linearly interpolate two vectors, returns a new Vector instance.
     static Vector lerp(in Vector lhs, in Vector rhs, float t) {

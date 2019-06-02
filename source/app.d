@@ -21,7 +21,8 @@ struct Image {
 
 // If piping from console, make sure console is UTF-8.
 void main() {
-    render()
+    scene()
+        .render()
         .ppm();
 }
 
@@ -41,20 +42,25 @@ Vector3 colour() (in auto ref Ray r, in HitableList world, int depth = 0) {
     return Vector3.lerp(Vector3.one(), c, t);
 }
 
+/// Add objects to the scene.
+HitableList scene() {
+    HitableList world = new HitableList();
+    world.add(new Sphere(Vector3(0.0f, 0.0f, -1.0f), 0.5f, new Lambertian(Vector3(0.1f, 0.2f, 0.5f))));
+    world.add(new Sphere(Vector3(0.0f, -100.5f, -1.0f), 100.0f, new Lambertian(Vector3(0.8f, 0.8f, 0.0f))));
+    world.add(new Sphere(Vector3(1.0f, 0.0f, -1.0f), 0.5f, new Metal(Vector3(0.8f, 0.6f, 0.2f), 0.25f)));
+    world.add(new Sphere(Vector3(-1.0f, 0.0f, -1.0f), 0.5f, new Dielectric(1.5f)));
+    world.add(new Sphere(Vector3(-1.0f, 0.0f, -1.0f), -0.45f, new Dielectric(1.5f)));
+    return world;
+}
+
 /// Render the scene.
-Image render() {
+Image render(in HitableList world) {
     import std.parallelism : parallel;
     import std.random : uniform01;
     import std.math : sqrt;
     Image output = Image(1600, 800);
     immutable samples = 100.0f;
-    HitableList world = new HitableList();
-    const camera = new Camera();
-    world.add(new Sphere(Vector3(0.0f, 0.0f, -1.0f), 0.5f, new Lambertian(Vector3(0.1f, 0.2f, 0.5f))));
-    world.add(new Sphere(Vector3(0.0f, -100.5f, -1.0f), 100.0f, new Lambertian(Vector3(0.8f, 0.8f, 0.0f))));
-    world.add(new Sphere(Vector3(1.0f, 0.0f, -1.0f), 0.5f, new Metal(Vector3(0.8f, 0.6f, 0.2f), 1.0f)));
-    world.add(new Sphere(Vector3(-1.0f, 0.0f, -1.0f), 0.5f, new Dielectric(1.5f)));
-    world.add(new Sphere(Vector3(-1.0f, 0.0f, -1.0f), -0.45f, new Dielectric(1.5f)));
+    const camera = new Camera(Vector3(-2.0f, 2.0f, 1.0f), Vector3.back(), Vector3.up(), 20.0f, output.width / output.height);
     foreach(i, ref pixel; output.pixels.parallel) {
         auto col = Vector3(0.0f, 0.0f, 0.0f);
         immutable x = (i % output.width);

@@ -64,13 +64,19 @@ if(size >= 2 && size <= 4)
     }
 
     /// Unary operations on Vector such as -- and ++, ~ and * are not supported.
-    Vector opUnary(string op)() {
-        static assert(op != "*" && op != "~", "Operand " ~ op ~ " not supported on " ~ _typeName);
-        static foreach(i; 0 .. size) {{
-            enum component = "_components[" ~ i.stringof ~ "]";
-            mixin(component ~ " = " ~ op ~ component ~ ";");
-        }}
-        return this;
+    Vector opUnary(string op)() const {
+        static if(op == "++" || op == "--") {
+            static foreach(i; 0 .. size) {{
+                enum component = "_components[" ~ i.stringof ~ "]";
+                mixin(component ~ " = " ~ op ~ component ~ ";");
+            }}
+            return this;
+        }
+        else static if(op == "-"  || op == "+") {
+            static immutable args = size.iota.map!(i => op ~ "this[" ~ i.to!string ~ "]").array;
+            mixin("return Vector" ~ args.format!("(%-(%s%|, %));"));
+        }
+        else static assert(0, "Operand " ~ op ~ " not supported on " ~ _typeName);
     }
 
     /// Vector on Vector operations such as addition and subtraction, yields a new Vector instance.
@@ -122,12 +128,12 @@ if(size >= 2 && size <= 4)
     }
 
     /// Compute the distance between two Vector instances.
-    static float distance() (in auto ref Vector lhs, in auto ref Vector rhs) {
+    static float distance(in Vector lhs, in Vector rhs) {
         return (lhs - rhs).magnitude;
     }
 
     /// Return a new normalized Vector.
-    static Vector normalized() (in auto ref Vector v) {
+    static Vector normalized(in Vector v) {
         //FIXME: Simplify this.  We want to return a mutable zero vector.
         static immutable args = [0,0,0,0][0..size];
         mixin("auto zero = Vector" ~ args.format!("(%(%s.0f%|, %))") ~ ";");
@@ -156,24 +162,24 @@ if(size >= 2 && size <= 4)
     static ref const(Vector3) right() () if(size == 3) { return _right; }
 
     /// Linearly interpolate two vectors, returns a new Vector instance.
-    static Vector lerp() (in auto ref Vector lhs, in auto ref Vector rhs, float t) {
+    static Vector lerp(in Vector lhs, in Vector rhs, float t) {
         return (1.0f - t) * lhs + t * rhs;
     }
 
     /// Return the scalar dot product of two Vector instances.
-    static float dot() (in auto ref Vector lhs, in auto ref Vector rhs) {
+    static float dot(in Vector lhs, in Vector rhs) {
         return (lhs * rhs).sum;
     }
 
     /// Return the cross product of two Vector3 instances, returns a new Vector3 instance.
-    static Vector3 cross() (in auto ref Vector3 lhs, in auto ref Vector3 rhs) if(size == 3) {
+    static Vector3 cross() (in Vector3 lhs, in Vector3 rhs) if(size == 3) {
         return Vector3(lhs[1] * rhs[2] - lhs[2] * rhs[1],
                      -(lhs[0] * rhs[2] - lhs[2] * rhs[0]),
                        lhs[0] * rhs[1] - lhs[1] * rhs[0]);
     }
 
     /// Return the reflected vector from the normal plane as a new Vector instance.
-    static Vector reflect() (in auto ref Vector direction, in auto ref Vector normal) {
+    static Vector reflect(in Vector direction, in Vector normal) {
         return -2.0f * Vector.dot(direction, normal) * normal + direction;
     }
 

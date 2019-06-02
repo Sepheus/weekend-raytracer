@@ -4,11 +4,6 @@ import raytracer.materials.material;
 
 /// Diffuse material implementation.
 class Lambertian : Material {
-
-    import raytracer.ray : Ray;
-    import raytracer.vector : Vector3;
-    import raytracer.hitable : HitRecord;
-
     /// Initialise Lambertian material with a Vector3 albedo value.
     this(in Vector3 albedo) { super(albedo); }
 

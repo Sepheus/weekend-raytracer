@@ -7,3 +7,4 @@ public import raytracer.vector;
 public import raytracer.camera;
 public import raytracer.materials.lambertian;
 public import raytracer.materials.metal;
+public import raytracer.materials.dielectric;

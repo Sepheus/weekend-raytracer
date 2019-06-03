@@ -21,7 +21,7 @@ struct Image {
 
 // If piping from console, make sure console is UTF-8.
 void main() {
-    scene()
+    randomScene()
         .render()
         .ppm();
 }
@@ -53,14 +53,40 @@ HitableList scene() {
     return world;
 }
 
+/// Generate the scene on the book cover.
+HitableList randomScene() {
+    import std.random : uniform01;
+    HitableList world = new HitableList();
+    world.add(new Sphere(Vector3(0.0f, -1000.0f, 0.0f), 1000.0f, new Lambertian(Vector3(0.5f, 0.5f, 0.5f))));
+    foreach(a; -11..11) {
+        foreach(b; -11..11) {
+            immutable material = uniform01();
+            immutable centre = Vector3(a+0.9f*uniform01(), 0.2f, b+0.9f*uniform01());
+            if((centre - Vector3(4.0f, 0.2f, 0.0f)).length() > 0.9) {
+                immutable rnd = 0.5f * (Vector4(uniform01, uniform01, uniform01, uniform01) + 1.0f);
+                immutable albedo = Vector3(uniform01, uniform01, uniform01) * Vector3(uniform01, uniform01, uniform01);
+                auto mat =
+                material < 0.8f  ? new Lambertian(albedo)                           :
+                material < 0.95f ? new Metal(Vector3(rnd.x, rnd.y, rnd.z), rnd.w)   :
+                                   new Dielectric(1.5f);
+                world.add(new Sphere(centre, 0.2f, mat));
+            }
+        }
+    }
+    world.add(new Sphere(Vector3.up(), 1.0f, new Dielectric(1.5f)));
+    world.add(new Sphere(Vector3(-4.0f, 1.0f, 0.0f), 1.0f, new Lambertian(Vector3(0.4, 0.2f, 0.1f))));
+    world.add(new Sphere(Vector3(4.0f, 1.0f, 0.0f), 1.0f, new Metal(Vector3(0.7f, 0.6f, 0.5f))));
+    return world;
+}
+
 /// Render the scene.
 Image render(in HitableList world) {
     import std.parallelism : parallel;
     import std.random : uniform01;
     import std.math : sqrt;
     Image output = Image(1600, 800);
-    immutable samples = 100.0f;
-    const camera = new Camera(Vector3(-2.0f, 2.0f, 1.0f), Vector3.back(), Vector3.up(), 20.0f, output.width / output.height);
+    immutable samples = 10.0f;  //Increase for higher fidelity.
+    const camera = new Camera(Vector3(13.0f, 2.0f, 3.0f), Vector3.zero(), Vector3.up(), 20.0f, output.width / output.height);
     foreach(i, ref pixel; output.pixels.parallel) {
         auto col = Vector3(0.0f, 0.0f, 0.0f);
         immutable x = (i % output.width);
